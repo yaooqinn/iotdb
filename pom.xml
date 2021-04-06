@@ -155,6 +155,8 @@
         <!-- disable enforcer by default-->
         <enforcer.skip>true</enforcer.skip>
         <spotless.version>2.4.2</spotless.version>
+        <!-- we will concat ${basedir}/src/test/${docker.test.folder} as the test source folder-->
+        <docker.test.folder>java</docker.test.folder>
     </properties>
     <!--
         if we claim dependencies in dependencyManagement, then we do not claim
@@ -506,6 +508,12 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.15.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -898,6 +906,7 @@
                             <excludes>
                                 <!-- Exclude integration tests within (unit) test phase. -->
                                 <exclude>src/test/**/*IT.java</exclude>
+                                <exclude>src/test/**/*E2E.java</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -911,6 +920,7 @@
                             <includes>
                                 <!-- Include integration tests within integration-test phase. -->
                                 <include>src/test/**/*IT.java</include>
+                                <include>src/test/**/*E2E.java</include>
                             </includes>
                         </configuration>
                     </execution>
@@ -1362,6 +1372,61 @@
             <properties>
                 <enforcer.skip>false</enforcer.skip>
             </properties>
+        </profile>
+        <!-- for TestContainer. As it requires docker, we have to detect whether docker exists.-->
+        <profile>
+            <!-- Mac and Unix-->
+            <id>unixDockerCheck</id>
+            <activation>
+                <file>
+                    <exists>/var/run/docker.sock</exists>
+                </file>
+            </activation>
+            <properties>
+                <docker.test.folder>container</docker.test.folder>
+            </properties>
+        </profile>
+        <profile>
+            <id>WinDockerCheck</id>
+            <activation>
+                <file>
+                    <exists>C:\Program Files\Docker\Docker\resources\bin\docker.exe</exists>
+                </file>
+            </activation>
+            <properties>
+                <docker.test.folder>container</docker.test.folder>
+            </properties>
+        </profile>
+        <!-- If docker exist, we add src/test/container as the test source folder.
+        Otherwise, we just add src/test/java as the test source folder, which does not take any effect.-->
+        <profile>
+            <id>dockerTest</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-test-container-source</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>add-test-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>${basedir}/src/test/${docker.test.folder}</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
