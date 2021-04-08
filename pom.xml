@@ -950,7 +950,6 @@
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
             </plugin>
-
             <!-- If docker exist, we add src/test/container as the test source folder.
         Otherwise, we just add src/test/java as the test source folder, which does not take any effect.-->
             <plugin>
@@ -1028,7 +1027,6 @@
                 <thrift.exec-cmd.args>+x ${project.build.directory}/tools/${thrift.executable}</thrift.exec-cmd.args>
             </properties>
         </profile>
-
         <!-- for TestContainer. As it requires docker, we have to detect whether docker exists.-->
         <profile>
             <!-- Mac and Unix-->
@@ -1053,7 +1051,6 @@
                 <docker.test.folder>container</docker.test.folder>
             </properties>
         </profile>
-
         <!-- Some APIs were removed in Java 11, so we need to add replacements -->
         <profile>
             <id>java-11-and-above</id>
@@ -1426,6 +1423,5 @@
                 <enforcer.skip>false</enforcer.skip>
             </properties>
         </profile>
-
     </profiles>
 </project>

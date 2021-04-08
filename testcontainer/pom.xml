@@ -12,6 +12,7 @@
         <docker.test.skip>false</docker.test.skip>
         <docker.build.executable>docker</docker.build.executable>
         <docker.build.argument>build -t apache/iotdb:maven-development -f ${basedir}/../docker/src/main/Dockerfile ${basedir}/../.</docker.build.argument>
+        <docker.clean.argument>image rm apache/iotdb:maven-development</docker.clean.argument>
     </properties>
     <!-- If docker exist, we add src/test/container as the test source folder.
             Otherwise, we just add src/test/java as the test source folder, which does not take any effect.-->
@@ -39,6 +40,18 @@
                                     <skip>${docker.test.skip}</skip>
                                     <executable>${docker.build.executable}</executable>
                                     <commandlineArgs>${docker.build.argument}</commandlineArgs>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>clean-docker-image</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${docker.test.skip}</skip>
+                                    <executable>${docker.build.executable}</executable>
+                                    <commandlineArgs>${docker.clean.argument}</commandlineArgs>
                                 </configuration>
                             </execution>
                         </executions>
