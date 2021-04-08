@@ -104,6 +104,7 @@
         <module>client-py</module>
         <module>compile-tools</module>
         <module>client-cpp</module>
+        <module>testcontainer</module>
     </modules>
     <!-- Properties Management -->
     <properties>
@@ -949,6 +950,28 @@
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
             </plugin>
+
+            <!-- If docker exist, we add src/test/container as the test source folder.
+        Otherwise, we just add src/test/java as the test source folder, which does not take any effect.-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>add-test-container-source</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${basedir}/src/test/${docker.test.folder}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -1005,6 +1028,32 @@
                 <thrift.exec-cmd.args>+x ${project.build.directory}/tools/${thrift.executable}</thrift.exec-cmd.args>
             </properties>
         </profile>
+
+        <!-- for TestContainer. As it requires docker, we have to detect whether docker exists.-->
+        <profile>
+            <!-- Mac and Unix-->
+            <id>unixDockerCheck</id>
+            <activation>
+                <file>
+                    <exists>/var/run/docker.sock</exists>
+                </file>
+            </activation>
+            <properties>
+                <docker.test.folder>container</docker.test.folder>
+            </properties>
+        </profile>
+        <profile>
+            <id>WinDockerCheck</id>
+            <activation>
+                <file>
+                    <exists>C:\Program Files\Docker\Docker\resources\bin\docker.exe</exists>
+                </file>
+            </activation>
+            <properties>
+                <docker.test.folder>container</docker.test.folder>
+            </properties>
+        </profile>
+
         <!-- Some APIs were removed in Java 11, so we need to add replacements -->
         <profile>
             <id>java-11-and-above</id>
@@ -1377,116 +1426,6 @@
                 <enforcer.skip>false</enforcer.skip>
             </properties>
         </profile>
-        <!-- for TestContainer. As it requires docker, we have to detect whether docker exists.-->
-        <profile>
-            <!-- Mac and Unix-->
-            <id>unixDockerCheck</id>
-            <activation>
-                <file>
-                    <exists>/var/run/docker.sock</exists>
-                </file>
-            </activation>
-            <properties>
-                <docker.test.folder>container</docker.test.folder>
-            </properties>
-        </profile>
-        <profile>
-            <id>WinDockerCheck</id>
-            <activation>
-                <file>
-                    <exists>C:\Program Files\Docker\Docker\resources\bin\docker.exe</exists>
-                </file>
-            </activation>
-            <properties>
-                <docker.test.folder>container</docker.test.folder>
-            </properties>
-        </profile>
-        <!-- If docker exist, we add src/test/container as the test source folder.
-        Otherwise, we just add src/test/java as the test source folder, which does not take any effect.-->
-        <profile>
-            <id>dockerTest</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>3.2.0</version>
-                        <executions>
-                            <execution>
-                                <id>add-test-container-source</id>
-                                <phase>generate-test-sources</phase>
-                                <goals>
-                                    <goal>add-test-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>${basedir}/src/test/${docker.test.folder}</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- before integration test, we build the docker image -->
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.35.0</version>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <!--image name-->
-                                    <name>apache/iotdb:maven-development</name>
-                                    <!--alias is for naming the container and find the container in docker-compose.yml-->
-                                    <alias>iotdb-server</alias>
-                                    <build>
-                                        <dockerFile>docker/src/main/Dockerfile</dockerFile>
-                                        <contextDir>../</contextDir>
-                                    </build>
-                                    <!--docker-compose file-->
-<!--                                    <external>-->
-<!--                                        <type>compose</type>-->
-<!--                                        <basedir>../docker/src/main</basedir>-->
-<!--                                        <composeFile>docker-compose.yaml</composeFile>-->
-<!--                                    </external>-->
-                                    <!--run the container-->
-                                    <run>
-                                        <!--using alias as the container name; if not set, then will use random string as name-->
-                                        <namingStrategy>alias</namingStrategy>
-                                    </run>
-                                </image>
-                            </images>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>build-docker-for-test</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>remove-docker-for-test</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>remove</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <dependencies>
-                            <!--The plugin depends on this plugin-->
-                            <dependency>
-                                <groupId>commons-codec</groupId>
-                                <artifactId>commons-codec</artifactId>
-                                <version>1.11</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                    <!-- after integration test, we remove the docker image-->
-                </plugins>
-            </build>
-        </profile>
+
     </profiles>
 </project>
