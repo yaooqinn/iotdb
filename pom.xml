@@ -922,6 +922,10 @@
                                 <include>src/test/**/*IT.java</include>
                                 <include>src/test/**/*E2E.java</include>
                             </includes>
+                            <excludes>
+                                <!-- Exclude unit tests within (unit) test phase. -->
+                                <exclude>src/test/**/*Test.java</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
@@ -1425,6 +1429,62 @@
                             </execution>
                         </executions>
                     </plugin>
+                    <!-- before integration test, we build the docker image -->
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>0.35.0</version>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <!--image name-->
+                                    <name>apache/iotdb:maven-development</name>
+                                    <!--alias is for naming the container and find the container in docker-compose.yml-->
+                                    <alias>iotdb-server</alias>
+                                    <build>
+                                        <dockerFile>docker/src/main/Dockerfile</dockerFile>
+                                        <contextDir>../</contextDir>
+                                    </build>
+                                    <!--docker-compose file-->
+<!--                                    <external>-->
+<!--                                        <type>compose</type>-->
+<!--                                        <basedir>../docker/src/main</basedir>-->
+<!--                                        <composeFile>docker-compose.yaml</composeFile>-->
+<!--                                    </external>-->
+                                    <!--run the container-->
+                                    <run>
+                                        <!--using alias as the container name; if not set, then will use random string as name-->
+                                        <namingStrategy>alias</namingStrategy>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-docker-for-test</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>remove-docker-for-test</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>remove</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <!--The plugin depends on this plugin-->
+                            <dependency>
+                                <groupId>commons-codec</groupId>
+                                <artifactId>commons-codec</artifactId>
+                                <version>1.11</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                    <!-- after integration test, we remove the docker image-->
                 </plugins>
             </build>
         </profile>

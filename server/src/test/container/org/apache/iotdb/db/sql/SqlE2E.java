@@ -39,11 +39,14 @@ public class SqlE2E {
   @Rule
   public GenericContainer dslContainer =
       new GenericContainer(
-          new ImageFromDockerfile().withDockerfile(new File("../docker/src/Dockerfile").toPath()));
+          new ImageFromDockerfile()
+              .withDockerfile(
+                  new File("../distribution/target/DockerfileForTestContainer")
+                      .getAbsoluteFile()
+                      .toPath()));
 
   @Before
   public void setUp() throws Exception {
-
     Class.forName(Config.JDBC_DRIVER_NAME);
     connection = DriverManager.getConnection("jdbc:iotdb://127.0.0.1:6667/", "root", "root");
     statement = connection.createStatement();
