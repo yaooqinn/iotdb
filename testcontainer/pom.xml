@@ -14,108 +14,79 @@
         <docker.build.argument>build -t apache/iotdb:maven-development -f ${basedir}/../docker/src/main/Dockerfile ${basedir}/../.</docker.build.argument>
         <docker.clean.argument>image rm apache/iotdb:maven-development</docker.clean.argument>
     </properties>
-    <!-- If docker exist, we add src/test/container as the test source folder.
-            Otherwise, we just add src/test/java as the test source folder, which does not take any effect.-->
-    <profiles>
-        <profile>
-            <id>dockerTest</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <!-- before integration test, we build the docker image -->
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.6.0</version>
-                        <executions>
-                            <execution>
-                                <id>build-docker-image</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>${docker.test.skip}</skip>
-                                    <executable>${docker.build.executable}</executable>
-                                    <commandlineArgs>${docker.build.argument}</commandlineArgs>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>clean-docker-image</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <skip>${docker.test.skip}</skip>
-                                    <executable>${docker.build.executable}</executable>
-                                    <commandlineArgs>${docker.clean.argument}</commandlineArgs>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!--                    <plugin>-->
-                    <!--                        <groupId>io.fabric8</groupId>-->
-                    <!--                        <artifactId>docker-maven-plugin</artifactId>-->
-                    <!--                        <version>0.35.0</version>-->
-                    <!--                        <configuration>-->
-                    <!--                            <images>-->
-                    <!--                                <image>-->
-                    <!--                                    &lt;!&ndash;image name&ndash;&gt;-->
-                    <!--                                    <name>apache/iotdb:maven-development</name>-->
-                    <!--                                    &lt;!&ndash;alias is for naming the container and find the container in docker-compose.yml&ndash;&gt;-->
-                    <!--                                    <alias>iotdb-server</alias>-->
-                    <!--                                    <build>-->
-                    <!--                                        <dockerFile>${project.basedir}/../docker/src/main/Dockerfile</dockerFile>-->
-                    <!--                                        <contextDir>${project.basedir}/..</contextDir>-->
-                    <!--                                        <assembly>-->
-                    <!--                                            <descriptorRef>rootWar</descriptorRef>-->
-                    <!--                                        </assembly>-->
-                    <!--                                    </build>-->
-                    <!--                                    &lt;!&ndash;docker-compose file&ndash;&gt;-->
-                    <!--                                    &lt;!&ndash;                                    <external>&ndash;&gt;-->
-                    <!--                                    &lt;!&ndash;                                        <type>compose</type>&ndash;&gt;-->
-                    <!--                                    &lt;!&ndash;                                        <basedir>../docker/src/main</basedir>&ndash;&gt;-->
-                    <!--                                    &lt;!&ndash;                                        <composeFile>docker-compose.yaml</composeFile>&ndash;&gt;-->
-                    <!--                                    &lt;!&ndash;                                    </external>&ndash;&gt;-->
-                    <!--                                    &lt;!&ndash;run the container&ndash;&gt;-->
-                    <!--                                    <run>-->
-                    <!--                                        &lt;!&ndash;using alias as the container name; if not set, then will use random string as name&ndash;&gt;-->
-                    <!--                                        <namingStrategy>alias</namingStrategy>-->
-                    <!--                                    </run>-->
-                    <!--                                </image>-->
-                    <!--                            </images>-->
-                    <!--                        </configuration>-->
-                    <!--                        <executions>-->
-                    <!--                            <execution>-->
-                    <!--                                <id>build-docker-for-test</id>-->
-                    <!--                                <phase>pre-integration-test</phase>-->
-                    <!--                                <goals>-->
-                    <!--                                    <goal>build</goal>-->
-                    <!--                                </goals>-->
-                    <!--                            </execution>-->
-                    <!--                            <execution>-->
-                    <!--                                <id>remove-docker-for-test</id>-->
-                    <!--                                <phase>post-integration-test</phase>-->
-                    <!--                                <goals>-->
-                    <!--                                    <goal>remove</goal>-->
-                    <!--                                </goals>-->
-                    <!--                            </execution>-->
-                    <!--                        </executions>-->
-                    <!--                        <dependencies>-->
-                    <!--                            &lt;!&ndash;The plugin depends on this plugin&ndash;&gt;-->
-                    <!--                            <dependency>-->
-                    <!--                                <groupId>commons-codec</groupId>-->
-                    <!--                                <artifactId>commons-codec</artifactId>-->
-                    <!--                                <version>1.11</version>-->
-                    <!--                            </dependency>-->
-                    <!--                        </dependencies>-->
-                    <!--                    </plugin>-->
-                    <!-- after integration test, we remove the docker image-->
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.iotdb</groupId>
+            <artifactId>iotdb-jdbc</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.iotdb</groupId>
+            <artifactId>iotdb-session</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.iotdb</groupId>
+            <artifactId>iotdb-cli</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <!-- before integration test, we build the docker image -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>build-docker-image</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${docker.test.skip}</skip>
+                            <executable>${docker.build.executable}</executable>
+                            <commandlineArgs>${docker.build.argument}</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clean-docker-image</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${docker.test.skip}</skip>
+                            <executable>${docker.build.executable}</executable>
+                            <commandlineArgs>${docker.clean.argument}</commandlineArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>add-test-container-source</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${basedir}/src/test/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

@@ -104,7 +104,6 @@
         <module>client-py</module>
         <module>compile-tools</module>
         <module>client-cpp</module>
-        <module>testcontainer</module>
     </modules>
     <!-- Properties Management -->
     <properties>
@@ -156,8 +155,6 @@
         <!-- disable enforcer by default-->
         <enforcer.skip>true</enforcer.skip>
         <spotless.version>2.4.2</spotless.version>
-        <!-- we will concat ${basedir}/src/test/${docker.test.folder} as the test source folder-->
-        <docker.test.folder>java</docker.test.folder>
     </properties>
     <!--
         if we claim dependencies in dependencyManagement, then we do not claim
@@ -950,27 +947,6 @@
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
             </plugin>
-            <!-- If docker exist, we add src/test/container as the test source folder.
-        Otherwise, we just add src/test/java as the test source folder, which does not take any effect.-->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>add-test-container-source</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${basedir}/src/test/${docker.test.folder}</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -1036,9 +1012,9 @@
                     <exists>/var/run/docker.sock</exists>
                 </file>
             </activation>
-            <properties>
-                <docker.test.folder>container</docker.test.folder>
-            </properties>
+            <modules>
+                <module>testcontainer</module>
+            </modules>
         </profile>
         <profile>
             <id>WinDockerCheck</id>
@@ -1047,9 +1023,9 @@
                     <exists>C:\Program Files\Docker\Docker\resources\bin\docker.exe</exists>
                 </file>
             </activation>
-            <properties>
-                <docker.test.folder>container</docker.test.folder>
-            </properties>
+            <modules>
+                <module>testcontainer</module>
+            </modules>
         </profile>
         <!-- Some APIs were removed in Java 11, so we need to add replacements -->
         <profile>

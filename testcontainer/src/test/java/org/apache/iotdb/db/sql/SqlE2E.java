@@ -19,14 +19,16 @@
 package org.apache.iotdb.db.sql;
 
 import org.apache.iotdb.jdbc.Config;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.images.PullPolicy;
+import org.testcontainers.utility.DockerImageName;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -38,17 +40,21 @@ public class SqlE2E {
 
   @Rule
   public GenericContainer dslContainer =
-      new GenericContainer(
-          new ImageFromDockerfile()
-              .withDockerfile(
-                  new File("../distribution/target/DockerfileForTestContainer")
-                      .getAbsoluteFile()
-                      .toPath()));
+      new GenericContainer(DockerImageName.parse("apache/iotdb:maven-development"))
+          .withImagePullPolicy(PullPolicy.defaultPolicy())
+          .withExposedPorts(6667)
+          .waitingFor(Wait.forListeningPort());
+
+  int rpcPort = 6667;
+  int syncPort = 5555;
 
   @Before
   public void setUp() throws Exception {
+    rpcPort = dslContainer.getMappedPort(6667);
+
+    syncPort = dslContainer.getMappedPort(5555);
     Class.forName(Config.JDBC_DRIVER_NAME);
-    connection = DriverManager.getConnection("jdbc:iotdb://127.0.0.1:6667/", "root", "root");
+    connection = DriverManager.getConnection("jdbc:iotdb://127.0.0.1:" + rpcPort, "root", "root");
     statement = connection.createStatement();
   }
 
