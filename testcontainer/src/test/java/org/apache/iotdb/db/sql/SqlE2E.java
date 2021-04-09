@@ -24,11 +24,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.PullPolicy;
 import org.testcontainers.utility.DockerImageName;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -42,6 +44,11 @@ public class SqlE2E {
   public GenericContainer dslContainer =
       new GenericContainer(DockerImageName.parse("apache/iotdb:maven-development"))
           .withImagePullPolicy(PullPolicy.defaultPolicy())
+          // mount another properties for changing parameters, e.g., open 5555 port (sync module)
+          .withFileSystemBind(
+              new File("src/test/resources/iotdb-engine.properties").getAbsolutePath(),
+              "/iotdb/conf/iotdb-engine.properties",
+              BindMode.READ_ONLY)
           .withExposedPorts(6667)
           .waitingFor(Wait.forListeningPort());
 

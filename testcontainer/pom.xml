@@ -11,8 +11,10 @@
     <properties>
         <docker.test.skip>false</docker.test.skip>
         <docker.build.executable>docker</docker.build.executable>
-        <docker.build.argument>build -t apache/iotdb:maven-development -f ${basedir}/../docker/src/main/Dockerfile ${basedir}/../.</docker.build.argument>
-        <docker.clean.argument>image rm apache/iotdb:maven-development</docker.clean.argument>
+        <docker.build.single.argument>build -t apache/iotdb:maven-development -f ${basedir}/../docker/src/main/Dockerfile-single ${basedir}/../.</docker.build.single.argument>
+        <docker.clean.single.argument>image rm apache/iotdb:maven-development</docker.clean.single.argument>
+        <docker.build.cluster.argument>build -t apache/iotdb:cluster-maven-development -f ${basedir}/../docker/src/main/Dockerfile-cluster ${basedir}/../.</docker.build.cluster.argument>
+        <docker.clean.cluster.argument>image rm apache/iotdb:cluster-maven-development</docker.clean.cluster.argument>
     </properties>
     <dependencies>
         <dependency>
@@ -51,7 +53,19 @@
                         <configuration>
                             <skip>${docker.test.skip}</skip>
                             <executable>${docker.build.executable}</executable>
-                            <commandlineArgs>${docker.build.argument}</commandlineArgs>
+                            <commandlineArgs>${docker.build.single.argument}</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-cluster-docker-image</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${docker.test.skip}</skip>
+                            <executable>${docker.build.executable}</executable>
+                            <commandlineArgs>${docker.build.cluster.argument}</commandlineArgs>
                         </configuration>
                     </execution>
                     <execution>
@@ -63,7 +77,19 @@
                         <configuration>
                             <skip>${docker.test.skip}</skip>
                             <executable>${docker.build.executable}</executable>
-                            <commandlineArgs>${docker.clean.argument}</commandlineArgs>
+                            <commandlineArgs>${docker.clean.single.argument}</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clean-cluster-docker-image</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${docker.test.skip}</skip>
+                            <executable>${docker.build.executable}</executable>
+                            <commandlineArgs>${docker.clean.cluster.argument}</commandlineArgs>
                         </configuration>
                     </execution>
                 </executions>
