@@ -124,6 +124,7 @@ public class StorageGroupProcessor {
   public static final String MERGING_MODIFICATION_FILE_NAME = "merge.mods";
   private static final String FAIL_TO_UPGRADE_FOLDER = "Failed to move {} to upgrade folder";
   private static final Logger DEBUG_LOGGER = LoggerFactory.getLogger("QUERY_DEBUG");
+  private static final Logger LOCK_LOGGER = LoggerFactory.getLogger("LOCK_LOGGER");
 
   private final IoTDBConfig config = IoTDBDescriptor.getInstance().getConfig();
 
@@ -1445,7 +1446,7 @@ public class StorageGroupProcessor {
       QueryFileManager filePathsManager,
       Filter timeFilter)
       throws QueryProcessException {
-    insertLock.readLock().lock();
+    readLock();
     try {
       List<TsFileResource> seqResources =
           getFileResourceListForQuery(
@@ -1477,16 +1478,36 @@ public class StorageGroupProcessor {
     } catch (MetadataException e) {
       throw new QueryProcessException(e);
     } finally {
-      insertLock.readLock().unlock();
+      readUnlock();
+    }
+  }
+
+  public void readLock() {
+    insertLock.writeLock().lock();
+    if (config.isDebugOn()) {
+      LOCK_LOGGER.info("{} insert read lock is held by {}", storageGroupName, Thread.currentThread().getName());
+    }
+  }
+
+  public void readUnlock() {
+    insertLock.writeLock().unlock();
+    if (config.isDebugOn()) {
+      LOCK_LOGGER.info("{} insert read lock is unlocked by {}", storageGroupName, Thread.currentThread().getName());
     }
   }
 
   public void writeLock() {
     insertLock.writeLock().lock();
+    if (config.isDebugOn()) {
+      LOCK_LOGGER.info("{} insert write lock is held by {}", storageGroupName, Thread.currentThread().getName());
+    }
   }
 
   public void writeUnlock() {
     insertLock.writeLock().unlock();
+    if (config.isDebugOn()) {
+      LOCK_LOGGER.info("{} insert write lock is unlocked by {}", storageGroupName, Thread.currentThread().getName());
+    }
   }
 
   /**
@@ -2634,7 +2655,7 @@ public class StorageGroupProcessor {
   public void removePartitions(TimePartitionFilter filter) {
     // this requires blocking all other activities
     tsFileManagement.writeLock();
-    insertLock.writeLock().lock();
+    writeLock();
     try {
       // abort ongoing merges
       MergeManager.getINSTANCE().abortMerge(storageGroupName);
@@ -2647,7 +2668,7 @@ public class StorageGroupProcessor {
       removePartitions(filter, tsFileManagement.getIterator(false));
 
     } finally {
-      insertLock.writeLock().unlock();
+      writeUnlock();
       tsFileManagement.writeUnlock();
     }
   }
