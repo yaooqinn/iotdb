@@ -1485,28 +1485,28 @@ public class StorageGroupProcessor {
   public void readLock() {
     insertLock.writeLock().lock();
     if (config.isDebugOn()) {
-      LOCK_LOGGER.info("{} insert read lock is held by {}", storageGroupName, Thread.currentThread().getName());
+      LOCK_LOGGER.info("{} insert read lock is locked", storageGroupName);
     }
   }
 
   public void readUnlock() {
     insertLock.writeLock().unlock();
     if (config.isDebugOn()) {
-      LOCK_LOGGER.info("{} insert read lock is unlocked by {}", storageGroupName, Thread.currentThread().getName());
+      LOCK_LOGGER.info("{} insert read lock is unlocked", storageGroupName);
     }
   }
 
   public void writeLock() {
     insertLock.writeLock().lock();
     if (config.isDebugOn()) {
-      LOCK_LOGGER.info("{} insert write lock is held by {}", storageGroupName, Thread.currentThread().getName());
+      LOCK_LOGGER.info("{} insert write lock is locked", storageGroupName);
     }
   }
 
   public void writeUnlock() {
     insertLock.writeLock().unlock();
     if (config.isDebugOn()) {
-      LOCK_LOGGER.info("{} insert write lock is unlocked by {}", storageGroupName, Thread.currentThread().getName());
+      LOCK_LOGGER.info("{} insert write lock is unlocked", storageGroupName);
     }
   }
 
