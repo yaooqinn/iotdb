@@ -124,7 +124,7 @@ public class StorageGroupProcessor {
   public static final String MERGING_MODIFICATION_FILE_NAME = "merge.mods";
   private static final String FAIL_TO_UPGRADE_FOLDER = "Failed to move {} to upgrade folder";
   private static final Logger DEBUG_LOGGER = LoggerFactory.getLogger("QUERY_DEBUG");
-  private static final Logger LOCK_LOGGER = LoggerFactory.getLogger("LOCK_LOGGER");
+  private static final Logger LOCK_LOGGER = LoggerFactory.getLogger("LOCK_DEBUG");
 
   private final IoTDBConfig config = IoTDBDescriptor.getInstance().getConfig();
 
